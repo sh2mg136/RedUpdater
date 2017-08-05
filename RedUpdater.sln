@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RedUpdater", "RedUpdater\RedUpdater.csproj", "{7D8B431F-6C22-44EF-A54F-7181FBA1521B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RedDeploy", "RedDeploy\RedDeploy.csproj", "{63CE10EC-7187-4661-AFDD-7C652EE5FC48}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommonTypes", "CommonTypes\CommonTypes.csproj", "{F993A599-E253-4D2F-9855-1E97287C53D1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7D8B431F-6C22-44EF-A54F-7181FBA1521B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7D8B431F-6C22-44EF-A54F-7181FBA1521B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7D8B431F-6C22-44EF-A54F-7181FBA1521B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7D8B431F-6C22-44EF-A54F-7181FBA1521B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{63CE10EC-7187-4661-AFDD-7C652EE5FC48}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{63CE10EC-7187-4661-AFDD-7C652EE5FC48}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{63CE10EC-7187-4661-AFDD-7C652EE5FC48}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{63CE10EC-7187-4661-AFDD-7C652EE5FC48}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F993A599-E253-4D2F-9855-1E97287C53D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F993A599-E253-4D2F-9855-1E97287C53D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F993A599-E253-4D2F-9855-1E97287C53D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F993A599-E253-4D2F-9855-1E97287C53D1}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
