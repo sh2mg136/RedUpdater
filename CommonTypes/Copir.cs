@@ -137,6 +137,8 @@ namespace CommonTypes
             }
             catch (Exception ex)
             {
+                System.Diagnostics.Trace.WriteLine(ex.Message);
+
                 var @event = OnError;
                 if (@event != null)
                 {

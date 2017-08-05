@@ -23,10 +23,19 @@ namespace RedUpdater
         const string REG_KEY_DESTINATION_PATH = "UpdaterDstPath";
         const string DEFAULT_SOURCE_PATH = @"z:\RedExpress.4.0\maxx\";
 
+        NLog.Logger Logger
+        {
+            get
+            {
+                return Program.RedLogger;
+            }
+        }
+
         public FormMain()
         {
             InitializeComponent();
             GetRedDirectory();
+            Logger.Error("{0}: Some error test", DateTime.Now);
         }
 
 
@@ -39,23 +48,23 @@ namespace RedUpdater
             DirectoryInfo dirInfo = new DirectoryInfo(directoryPath);
             if (!dirInfo.Exists)
             {
-                throw new InvalidOperationException("Каталог с программой RedExpress не найден");
+                throw new DirectoryNotFoundException(string.Concat("Каталог не найден: ", directoryPath));
             }
 
             var files = dirInfo.GetFiles("*.dll", SearchOption.TopDirectoryOnly);
             var exefiles = dirInfo.GetFiles("*.exe", SearchOption.TopDirectoryOnly);
             var fff = files.Concat(exefiles);
 
-            localFiles = ( from f in fff
-                           select new CommonTypes.MyFileInfo()
-                           {
-                               Name = f.Name,
-                               Path = f.FullName,
-                               Modified = f.LastWriteTime,
-                               Size = f.Length,
-                               Message = "Программа",
-                               State = CommonTypes.FileStates.None
-                           } ).ToList();
+            localFiles = (from f in fff
+                          select new CommonTypes.MyFileInfo()
+                          {
+                              Name = f.Name,
+                              Path = f.FullName,
+                              Modified = f.LastWriteTime,
+                              Size = f.Length,
+                              Message = "Программа",
+                              State = CommonTypes.FileStates.None
+                          }).ToList();
 
             programm.Programm = localFiles;
 
@@ -68,15 +77,15 @@ namespace RedUpdater
                 plugins = pDirInfo.GetFiles("*.dll", SearchOption.TopDirectoryOnly);
             }
 
-            var oldFilesPlugins = ( from p in plugins
-                                    select new CommonTypes.MyFileInfo()
-                                    {
-                                        Name = p.Name,
-                                        Path = p.FullName,
-                                        Modified = p.LastWriteTime,
-                                        Size = p.Length,
-                                        Message = "Модуль"
-                                    } ).ToList();
+            var oldFilesPlugins = (from p in plugins
+                                   select new CommonTypes.MyFileInfo()
+                                   {
+                                       Name = p.Name,
+                                       Path = p.FullName,
+                                       Modified = p.LastWriteTime,
+                                       Size = p.Length,
+                                       Message = "Модуль"
+                                   }).ToList();
 
             programm.Plugins = oldFilesPlugins;
 
@@ -180,81 +189,73 @@ namespace RedUpdater
 
             bool isRunning2 = IsAlreadyRunning("RedExpressPro");
 
-            if (isRunning)
+            if (!isRunning)
+                return true;
+
+            var pro = Process.GetProcesses().Where(x => x.ProcessName == "RedExpressPro").FirstOrDefault();
+
+            if (pro == null)
+                return true;
+
+            var taskB = Task.Factory.StartNew(() => ProcessExit(pro.Id));
+
+            Cursor cursor = Cursor.Current;
+            Cursor.Current = Cursors.WaitCursor;
+
+            taskB.Wait(10000);
+
+            Cursor.Current = cursor;
+
+            if (!taskB.IsCompleted)
             {
+                return false;
+            }
 
-                var pro = Process.GetProcesses().Where(x => x.ProcessName == "RedExpressPro").FirstOrDefault();
+            pro = Process.GetProcesses().Where(x => x.ProcessName == "RedExpressPro").FirstOrDefault();
 
-                if (pro == null)
-                    return true;
-
-                var taskB = Task.Factory.StartNew(() => ProcessExit(pro.Id));
-
-                Cursor cursor = Cursor.Current;
-                Cursor.Current = Cursors.WaitCursor;
-
-                taskB.Wait(3000); //Wait for 100 ms.
-
-                Cursor.Current = cursor;
-
-                if (!taskB.IsCompleted)
-                {
-                    pro = Process.GetProcesses().Where(x => x.ProcessName == "RedExpressPro").FirstOrDefault();
-
-                    if (pro != null)
-                    {
-                        MessageBox.Show("Закройте приложение и повторите попытку");
-                        return false;
-                    }
-                }
-
-                string path = string.Empty;
-
-                if (!CheckDirectory(out path))
-                    return false;
-
-                Assembly assembly = Assembly.LoadFrom(Path.Combine(path, "RedExpressPro.exe"));
-
-                //System.Reflection.Assembly assembly = System.Reflection.Assembly.GetEntryAssembly();
-                System.IO.FileInfo fInfo = new System.IO.FileInfo(assembly.Location);
-
-                var modules = assembly.GetModules();
-
-                Type t = assembly.GetType("RedExpressPro.frmMain");
-
-                Type t2 = assembly.GetType("RedExpressPro.frmMain");
-
-                var methodInfo = t.GetMethod("CloseAll");
-
-                if (methodInfo == null)
-                {
-                    Debug.WriteLine("Method not found");
-                }
-                else
-                {
-                    try
-                    {
-                        // var o = Activator.CreateInstance( t, new object[] { true } );
-                        var o = Activator.CreateInstance(t, new object[] { false });
-                        // t.InvokeMember("CloseAll", BindingFlags.Default, 
-                        //methodInfo.Invoke( o, null );
-                        // DEBUG.WriteLine( r );
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show(ex.Message);
-                    }
-                }
-
-                /*
-                    Type type = Type.GetType(className, true);
-                    dynamic instance = Activator.CreateInstance(type);
-                    var response = instance.YourMethod();              
-                */
+            if (pro == null)
+            {
                 return true;
             }
+
+            /*
+            string path = string.Empty;
+            if (!CheckDirectory(out path))
+                return false;
+            Assembly assembly = Assembly.LoadFrom(Path.Combine(path, "RedExpressPro.exe"));
+            System.IO.FileInfo fInfo = new System.IO.FileInfo(assembly.Location);
+            var modules = assembly.GetModules();
+            Type t = assembly.GetType("RedExpressPro.frmMain");
+            Type t2 = assembly.GetType("RedExpressPro.frmMain");
+            var methodInfo = t.GetMethod("CloseAll");
+            if (methodInfo == null)
+            {
+                Debug.WriteLine("Method not found");
+            }
             else
-                return true;
+            {
+                try
+                {
+                    // var o = Activator.CreateInstance( t, new object[] { true } );
+                    var o = Activator.CreateInstance(t, new object[] { false });
+                    // t.InvokeMember("CloseAll", BindingFlags.Default, 
+                    // methodInfo.Invoke( o, null );
+                    // DEBUG.WriteLine( r );
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
+            }
+
+            /*
+                Type type = Type.GetType(className, true);
+                dynamic instance = Activator.CreateInstance(type);
+                var response = instance.YourMethod();              
+            */
+
+            return false;
+
         }
 
 
@@ -284,6 +285,7 @@ namespace RedUpdater
             {
 
                 remoteData = GetFiles(txtSourcePath.Text.Trim());
+
                 localData = GetFiles(txtDestinationPath.Text.Trim());
 
                 foreach (var f in localData.Programm)
@@ -316,9 +318,18 @@ namespace RedUpdater
                 gridControlPlugins.DataSource = localData.Plugins;
 
             }
+            catch (DirectoryNotFoundException dex)
+            {
+                var msg = string.Concat("Получение списка файлов для обновления. \r\n", dex.Message);
+                Logger.Error(msg);
+                MessageBox.Show(msg);
+                return;
+            }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message);
+                var msg = string.Concat("Получение списка файлов для обновления. \r\n", ex.Message);
+                Logger.Error(msg);
+                MessageBox.Show(msg);
             }
 
             var outdatedFiles = localData.Programm.Where(x => x.State == CommonTypes.FileStates.Outdated).Count();
@@ -337,8 +348,10 @@ namespace RedUpdater
 
 
             if (!CloseApp())
+            {
+                MessageBox.Show("Похоже, программа RedExpress запущена! Завершите работу RedExpress и повторите попытку!");
                 return;
-
+            }
 
             var dlgres = MessageBox.Show("Обновить программу?", "", MessageBoxButtons.OKCancel, MessageBoxIcon.Question);
             if (dlgres != System.Windows.Forms.DialogResult.OK)
